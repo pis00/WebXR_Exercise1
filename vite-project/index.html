@@ -7,11 +7,14 @@
     <title>Vite + TS</title>
 
     <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.6.0/dist/aframe-extras.min.js"></script>
   </head>
   <body>
     <h1>Hello Vite + TypeScript!</h1>
 
     <a-scene>
+      <a-assets>  <a-asset-item id="statue-model" src="./realistic_bear_3.0_3d_model.glb">  </a-asset-item> </a-assets>
+      <a-entity gltf-model="#statue-model" position="1 2 -3" scale="0.1 0.1 0.1" animation-mixer></a-entity>
       <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
       <a-sphere position="0 1.25 -5" radius="1.25" color="#EF2D5E"></a-sphere>
       <a-cylinder position="1 0.75 -3" radius="0.5" height="1.5" color="#FFC65D"></a-cylinder>
