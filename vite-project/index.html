@@ -2,25 +2,59 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + TS</title>
+    <title>Main Menu</title>
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
 
-    <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.6.0/dist/aframe-extras.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(180deg, #0f172a, #1e293b);
+        color: #e2e8f0;
+        font-family: system-ui, sans-serif;
+      }
+
+      h1 {
+        margin-bottom: 20px;
+        font-size: 2rem;
+      }
+
+      .menu {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .menu-btn {
+        display: inline-block;
+        padding: 12px 16px;
+        border-radius: 10px;
+        background: #38bdf8;
+        color: #0f172a;
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 1rem;
+        text-align: center;
+        transition: background 0.2s;
+      }
+
+      .menu-btn:hover {
+        background: #7dd3fc;
+      }
+    </style>
   </head>
-  <body>
-    <h1>Hello Vite + TypeScript!</h1>
 
-    <a-scene>
-      <a-assets>  <a-asset-item id="statue-model" src="./realistic_bear_3.0_3d_model.glb">  </a-asset-item> </a-assets>
-      <a-entity gltf-model="#statue-model" position="1 2 -3" scale="0.1 0.1 0.1" animation-mixer></a-entity>
-      <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
-      <a-sphere position="0 1.25 -5" radius="1.25" color="#EF2D5E"></a-sphere>
-      <a-cylinder position="1 0.75 -3" radius="0.5" height="1.5" color="#FFC65D"></a-cylinder>
-      <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
-      <a-sky color="#ECECEC"></a-sky>
-    </a-scene>
-    
+  <body>
+    <h1>Main Menu</h1>
+
+    <div class="menu">
+      <a class="menu-btn" href="/scene1.html">Go to Scene 1</a>
+      <a class="menu-btn" href="/scene2.html">Go to Scene 2</a>
+    </div>
   </body>
 </html>
