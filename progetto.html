@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AR Art Room</title>
+    <link rel="icon" type="image/svg+xml" href="./vite.svg" />
+
+    <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.6.0/dist/aframe-extras.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+    <style>
+      html, body { margin: 0; height: 100%; overflow: hidden; }
+
+      /* La scena occupa tutto lo schermo */
+      a-scene {
+        position: fixed;
+        inset: 0;
+      }
+
+      /* Il bottone sta sopra al canvas di A-Frame */
+      .back-btn {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: #ffffff;
+        color: #000000;
+        border: 2px solid #000000;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        z-index: 9999;
+        pointer-events: auto;
+      }
+
+      .back-btn:hover { background: #e5e5e5; }
+
+      /* (opzionale) assicura che il canvas non superi il bottone */
+      canvas.a-canvas, .a-enter-vr {
+        z-index: 0;
+      }
+
+      /* Force camera video and AR canvas to be fullscreen */
+      video,
+      #mindar-video,
+      canvas.a-canvas {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        object-fit: cover !important;
+      }
+
+      /* Hide the default MindAR loading spinner */
+      .mindar-ui-loading {
+        display: none !important;
+      }
+
+      #intro {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        gap: 24px;
+        text-align: center;
+        background-image: url("./background_1.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-color: #000;
+        color: #e5e7eb;
+        z-index: 10;
+      }
+
+      #intro h1 {
+        margin: 0;
+        font-size: clamp(1.8rem, 4vw, 2.4rem);
+        color: #000;
+      }
+
+      #intro p {
+        margin: 0;
+        max-width: 540px;
+        line-height: 1.5;
+        color: #000;
+      }
+
+      #intro img {
+        width: 100%;
+        max-width: 420px;
+        border-radius: 16px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.8);
+      }
+
+      .intro-box {
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(6px);
+        padding: 28px 32px;
+        border-radius: 18px;
+        max-width: 480px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+
+      #start-ar {
+        margin-top: 8px;
+        padding: 12px 24px;
+        border-radius: 999px;
+        border: 2px solid #000;
+        background: #fff;
+        color: #000;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.15s ease;
+      }
+
+      #start-ar:hover {
+        background: #e5e5e5;
+        transform: translateY(-1px);
+      }
+
+      .note {
+        font-size: 0.85rem;
+        opacity: 0.85;
+        color: #000;
+      }
+    </style>
+  </head>
+
+  <body>
+    <a class="back-btn" href="./index.html">← Back to Menu</a>
+
+    <div id="intro">
+      <div class="intro-box">
+        <h1>AR Art Room</h1>
+        <p>
+          This WebXR experience transforms a simple postcard into a small museum
+          room in augmented reality. Point your camera at the target to reveal
+          the 3D paintings in real space.
+        </p>
+        <button id="start-ar">Start AR</button>
+        <p class="note">
+          Tip: open this page on a smartphone or tablet and allow camera access.
+        </p>
+      </div>
+    </div>
+
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind; autoStart: false;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: true" embedded style="display: none;">
+
+      <a-assets>
+        <a-asset-item id="roomModel" src="./models/art_room.glb"></a-asset-item>
+        <a-asset-item id="painting1Model" src="./models/painting1.glb"></a-asset-item>
+        <a-asset-item id="painting2Model" src="./models/painting2.glb"></a-asset-item>
+        <a-asset-item id="mainObjectModel" src="./models/Art_scene.glb"></a-asset-item>
+      </a-assets>
+
+      <a-entity light="type: ambient; intensity: 0.6"></a-entity>
+      <a-entity light="type: directional; intensity: 0.8" position="0 1 1"></a-entity>
+      <a-sky color="#cccccc"></a-sky>
+
+      <!-- Always‑visible model (center of AR view) -->
+      <a-gltf-model
+        src="#mainObjectModel"
+        position="0 0 -1"
+        rotation="0 0 0"
+        scale="0.3 0.3 0.3">
+      </a-gltf-model>
+
+      <a-entity mindar-image-target="targetIndex: 0">
+        <a-gltf-model src="#roomModel" position="0 0 0" rotation="0 0 0" scale="0.4 0.4 0.4"></a-gltf-model>
+        <a-gltf-model src="#painting1Model" position="0 1 0.5" rotation="0 180 0" scale="0.2 0.2 0.2"></a-gltf-model>
+        <a-gltf-model src="#painting2Model" position="-0.8 1 0.5" rotation="0 180 0" scale="0.2 0.2 0.2"></a-gltf-model>
+      </a-entity>
+
+    </a-scene>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const introEl = document.getElementById("intro");
+        const startButton = document.getElementById("start-ar");
+        const sceneEl = document.querySelector("a-scene");
+
+        if (startButton && introEl && sceneEl) {
+          startButton.addEventListener("click", async () => {
+            introEl.style.display = "none";
+            sceneEl.style.display = "block";
+
+            const arSystem = sceneEl.systems["mindar-image-system"];
+            if (arSystem && arSystem.start) {
+              try {
+                await arSystem.start();
+              } catch (e) {
+                console.error("Error starting MindAR:", e);
+              }
+            }
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

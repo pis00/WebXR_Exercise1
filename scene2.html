@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scene 2</title>
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+
+    <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.6.0/dist/aframe-extras.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+    <style>
+      html, body { margin: 0; height: 100%; }
+
+      /* La scena occupa tutto lo schermo */
+      a-scene {
+        position: fixed;
+        inset: 0;
+      }
+
+      /* Il bottone sta sopra al canvas di A-Frame */
+      .back-btn {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: #38bdf8;
+        color: #0f172a;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        z-index: 9999;           /* 👈 resta sopra */
+        pointer-events: auto;    /* 👈 garantisce i click */
+      }
+
+      .back-btn:hover { background: #7dd3fc; }
+
+      /* (opzionale) assicura che il canvas non superi il bottone */
+      canvas.a-canvas, .a-enter-vr {
+        z-index: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <a class="back-btn" href="/index.html">← Back to Menu</a>
+
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind;">
+
+      <a-entity mindar-image-target="targetIndex: 0">           
+        <a-asset-item id="whale-model" src="./rigged_whale.glb"></a-asset-item>
+      </a-entity>
+      
+    </a-scene>
+  </body>
+</html>
