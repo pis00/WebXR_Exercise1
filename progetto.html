@@ -219,36 +219,29 @@
 
             const arSystem = sceneEl.systems["mindar-image-system"];
 
-            logDebug("Requesting camera permission…");
-
-            try {
-              const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-              logDebug("Camera permission granted. Initializing AR…");
-
-              // Stop the stream immediately — MindAR will reopen its own camera
-              stream.getTracks().forEach(t => t.stop());
-
-              if (arSystem && arSystem.start) {
+            if (arSystem && arSystem.start) {
+              try {
+                logDebug("MindAR system found. Starting AR (browser will now ask for camera permission)...");
                 await arSystem.start();
                 logDebug("MindAR started. Point the camera at the target.");
-              } else {
-                logDebug("ERROR: mindar-image-system not found.");
-              }
-            } catch (err) {
-              console.error("Camera permission denied:", err);
-              logDebug("ERROR: Camera permission denied. AR cannot start.");
-              return;
-            }
 
-            if (targetEntity) {
-              targetEntity.addEventListener("targetFound", () => {
-                logDebug("TARGET FOUND");
-              });
-              targetEntity.addEventListener("targetLost", () => {
-                logDebug("Target lost…");
-              });
+                if (targetEntity) {
+                  targetEntity.addEventListener("targetFound", () => {
+                    logDebug("TARGET FOUND");
+                  });
+                  targetEntity.addEventListener("targetLost", () => {
+                    logDebug("Target lost…");
+                  });
+                } else {
+                  logDebug("WARNING: mindar-image-target entity not found in scene.");
+                }
+              } catch (e) {
+                console.error("Error starting MindAR:", e);
+                logDebug("ERROR starting MindAR. See console.");
+                return;
+              }
             } else {
-              logDebug("WARNING: mindar-image-target entity not found in scene.");
+              logDebug("ERROR: mindar-image-system not found on scene.");
             }
           });
         } else {
