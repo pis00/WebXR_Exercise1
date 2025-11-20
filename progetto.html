@@ -218,6 +218,39 @@
         background: #e5e5e5;
         transform: translateY(-1px);
       }
+      /* Center guide for aiming at the target (QR / postcard) */
+      #target-guide {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        z-index: 12;
+      }
+
+      .target-frame {
+        width: min(60vw, 260px);
+        height: min(60vw, 260px);
+        border: 3px solid rgba(255, 255, 255, 0.9);
+        border-radius: 12px;
+        box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.35);
+        background: rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+      }
+
+      .target-text {
+        margin-bottom: 10px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.7);
+        color: #ffffff;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-align: center;
+      }
     </style>
   </head>
 
@@ -242,18 +275,23 @@
 
     <div id="permission-help">
       <div class="perm-box">
-        <h2>Permesso fotocamera necessario</h2>
+        <h2>Camera Access Required</h2>
         <p>
-          Non è possibile proseguire senza l'utilizzo della fotocamera. Per
-          abilitare la camera per questo sito:
+          Camera access is required to continue. To enable the camera for this site:
         </p>
         <ul>
-          <li>Apri le impostazioni del browser per questo sito (icona lucchetto o "aA").</li>
-          <li>Trova la voce <strong>Fotocamera / Camera</strong>.</li>
-          <li>Imposta su <strong>Consenti</strong> o <strong>Allow</strong>.</li>
-          <li>Ricarica la pagina e premi di nuovo <strong>Start AR</strong>.</li>
+          <li>Open your browser settings for this website (lock icon or "aA").</li>
+          <li>Find the <strong>Camera</strong> permission.</li>
+          <li>Set it to <strong>Allow</strong>.</li>
+          <li>Reload the page and press <strong>Start AR</strong> again.</li>
         </ul>
-        <button id="perm-back">Torna alla schermata iniziale</button>
+        <button id="perm-back">Return to Start Screen</button>
+      </div>
+    </div>
+
+    <div id="target-guide">
+      <div class="target-frame">
+        <div class="target-text">Center the postcard / QR inside this frame</div>
       </div>
     </div>
 
@@ -285,6 +323,7 @@
         const debugEl = document.getElementById("debug-panel");
         const permissionHelpEl = document.getElementById("permission-help");
         const permBackBtn = document.getElementById("perm-back");
+        const targetGuideEl = document.getElementById("target-guide");
         const targetEntity = document.querySelector("[mindar-image-target]");
 
         const logDebug = (msg) => {
@@ -334,9 +373,22 @@
           }
         };
 
+        const showTargetGuide = () => {
+          if (targetGuideEl) {
+            targetGuideEl.style.display = "flex";
+          }
+        };
+
+        const hideTargetGuide = () => {
+          if (targetGuideEl) {
+            targetGuideEl.style.display = "none";
+          }
+        };
+
         if (permBackBtn && introEl) {
           permBackBtn.addEventListener("click", () => {
             hidePermissionHelp();
+            hideTargetGuide();
             introEl.style.display = "flex";
             logDebug("Returned to start screen. Waiting for Start AR…");
           });
@@ -350,41 +402,45 @@
             // Se sappiamo già che è 'denied', non ha senso avviare subito AR
             if (cachedPermissionState === "denied") {
               logDebug(
-                "Camera permission is DENIED. Showing help interface to re-abilitate camera."
+                "Camera permission is DENIED. Showing help interface."
               );
               showPermissionHelp();
               return;
             }
 
             // Mostriamo la scena AR e lasciamo che MindAR gestisca la richiesta della camera
+            showTargetGuide();
             sceneEl.style.display = "block";
 
             const arSystem = sceneEl.systems["mindar-image-system"];
             if (arSystem && arSystem.start) {
               try {
                 logDebug(
-                  "Starting AR. Il browser potrebbe mostrare la richiesta ufficiale di permesso camera."
+                  "Starting AR. The browser may now show the official camera permission prompt."
                 );
                 await arSystem.start();
                 logDebug(
-                  "AR started. Point the camera at the target. (permission state may now be 'granted')"
+                  "AR started. Point your camera at the target (permission may now be 'granted')."
                 );
 
                 // Debug per il target
                 if (targetEntity) {
                   targetEntity.addEventListener("targetFound", () => {
                     logDebug("TARGET FOUND");
+                    hideTargetGuide();
                   });
                   targetEntity.addEventListener("targetLost", () => {
                     logDebug("Target lost…");
+                    showTargetGuide();
                   });
                 }
               } catch (e) {
                 console.error("Error starting MindAR:", e);
                 logDebug(
-                  "Error starting AR. Probabile permesso fotocamera negato o non disponibile."
+                  "Error starting AR. Camera permission likely denied or unavailable."
                 );
                 showPermissionHelp();
+                hideTargetGuide();
               }
             } else {
               console.error("mindar-image-system not found on scene.");
