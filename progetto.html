@@ -1,15 +1,291 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AR Art Room</title>
+    <link rel="icon" type="image/svg+xml" href="./vite.svg" />
+
+    <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.6.0/dist/aframe-extras.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+    <style>
+      html, body { margin: 0; height: 100%; overflow: hidden; }
+
+      /* La scena occupa tutto lo schermo */
+      a-scene {
+        position: fixed;
+        inset: 0;
+      }
+
+      /* Il bottone sta sopra al canvas di A-Frame */
+      .back-btn {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: #ffffff;
+        color: #000000;
+        border: 2px solid #000000;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        z-index: 9999;
+        pointer-events: auto;
+      }
+
+      .back-btn:hover { background: #e5e5e5; }
+
+      /* (opzionale) assicura che il canvas non superi il bottone */
+      canvas.a-canvas, .a-enter-vr {
+        z-index: 0;
+      }
+
+      /* Force camera video and AR canvas to be fullscreen */
+      video,
+      #mindar-video,
+      canvas.a-canvas {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        object-fit: cover !important;
+      }
+
+      /* Hide the default MindAR loading spinner */
+      .mindar-ui-loading {
+        display: none !important;
+      }
+
+      #intro {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        gap: 24px;
+        text-align: center;
+        background-image: url("./background_1.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-color: #000;
+        color: #e5e7eb;
+        z-index: 10;
+      }
+
+      #intro h1 {
+        margin: 0;
+        font-size: clamp(1.8rem, 4vw, 2.4rem);
+        color: #000;
+      }
+
+      #intro p {
+        margin: 0;
+        max-width: 540px;
+        line-height: 1.5;
+        color: #000;
+      }
+
+      #intro img {
+        width: 100%;
+        max-width: 420px;
+        border-radius: 16px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.8);
+      }
+
+      .intro-box {
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(6px);
+        padding: 28px 32px;
+        border-radius: 18px;
+        max-width: 480px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+
+      #start-ar {
+        margin-top: 8px;
+        padding: 12px 24px;
+        border-radius: 999px;
+        border: 2px solid #000;
+        background: #fff;
+        color: #000;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.15s ease;
+      }
+
+      #start-ar:hover {
+        background: #e5e5e5;
+        transform: translateY(-1px);
+      }
+
+      .note {
+        font-size: 0.85rem;
+        opacity: 0.85;
+        color: #000;
+      }
+
+      #debug-panel {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        padding: 6px 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: #00ff7f;
+        font-family: monospace;
+        font-size: 0.75rem;
+        border-radius: 6px;
+        z-index: 9999;
+        pointer-events: none;
+        max-width: 80vw;
+        text-align: left;
+        white-space: pre-line;
+      }
+
+      #permission-help {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: #ffffff;
+        z-index: 11;
+        text-align: center;
+      }
+
+      .perm-box {
+        max-width: 520px;
+        padding: 28px 32px;
+        border-radius: 18px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.15);
+        background: #ffffff;
+        color: #000000;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .perm-box h2 {
+        margin: 0;
+        font-size: 1.4rem;
+      }
+
+      .perm-box p {
+        margin: 0;
+        line-height: 1.4;
+      }
+
+      .perm-box ul {
+        margin: 6px 0 0 18px;
+        padding: 0;
+        text-align: left;
+      }
+
+      .perm-box li {
+        margin-bottom: 4px;
+        font-size: 0.9rem;
+      }
+
+      #perm-back {
+        align-self: center;
+        margin-top: 8px;
+        padding: 10px 18px;
+        border-radius: 999px;
+        border: 2px solid #000;
+        background: #ffffff;
+        color: #000000;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease, transform 0.15s ease;
+      }
+
+      #perm-back:hover {
+        background: #e5e5e5;
+        transform: translateY(-1px);
+      }
+    </style>
+  </head>
+
+  <body>
+    <a class="back-btn" href="./index.html">← Back to Menu</a>
+    <div id="debug-panel">[DEBUG] Waiting for Start AR…</div>
+
+    <div id="intro">
+      <div class="intro-box">
+        <h1>AR Art Room</h1>
+        <p>
+          This WebXR experience transforms a simple postcard into a small museum
+          room in augmented reality. Point your camera at the target to reveal
+          the 3D paintings in real space.
+        </p>
+        <button id="start-ar">Start AR</button>
+        <p class="note">
+          Tip: open this page on a smartphone or tablet and allow camera access.
+        </p>
+      </div>
+    </div>
+
+    <div id="permission-help">
+      <div class="perm-box">
+        <h2>Permesso fotocamera necessario</h2>
+        <p>
+          Non è possibile proseguire senza l'utilizzo della fotocamera. Per
+          abilitare la camera per questo sito:
+        </p>
+        <ul>
+          <li>Apri le impostazioni del browser per questo sito (icona lucchetto o "aA").</li>
+          <li>Trova la voce <strong>Fotocamera / Camera</strong>.</li>
+          <li>Imposta su <strong>Consenti</strong> o <strong>Allow</strong>.</li>
+          <li>Ricarica la pagina e premi di nuovo <strong>Start AR</strong>.</li>
+        </ul>
+        <button id="perm-back">Torna alla schermata iniziale</button>
+      </div>
+    </div>
+
+    <a-scene mindar-image="imageTargetSrc: ./target.mind; autoStart: false;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: true" embedded style="display: none;">
+
+      <a-assets>
+        <a-asset-item id="roomModel" src="./models/art_room.glb"></a-asset-item>
+        <a-asset-item id="painting1Model" src="./models/painting1.glb"></a-asset-item>
+        <a-asset-item id="painting2Model" src="./models/painting2.glb"></a-asset-item>
+        <a-asset-item id="mainObjectModel" src="./models/Art_scene.glb"></a-asset-item>
+      </a-assets>
+
+      <a-entity light="type: ambient; intensity: 0.6"></a-entity>
+      <a-entity light="type: directional; intensity: 0.8" position="0 1 1"></a-entity>
+
+      <a-entity mindar-image-target="targetIndex: 0">
+        <a-gltf-model src="#roomModel" position="0 0 0" rotation="0 0 0" scale="0.4 0.4 0.4"></a-gltf-model>
+        <a-gltf-model src="#painting1Model" position="0 1 0.5" rotation="0 180 0" scale="0.2 0.2 0.2"></a-gltf-model>
+        <a-gltf-model src="#painting2Model" position="-0.8 1 0.5" rotation="0 180 0" scale="0.2 0.2 0.2"></a-gltf-model>
+      </a-entity>
+
+    </a-scene>
+
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         const introEl = document.getElementById("intro");
         const startButton = document.getElementById("start-ar");
         const sceneEl = document.querySelector("a-scene");
         const debugEl = document.getElementById("debug-panel");
+        const permissionHelpEl = document.getElementById("permission-help");
+        const permBackBtn = document.getElementById("perm-back");
         const targetEntity = document.querySelector("[mindar-image-target]");
-
-        const cameraPermissionEl = document.getElementById("camera-permission");
-        const camYesBtn = document.getElementById("cam-yes");
-        const camNoBtn = document.getElementById("cam-no");
-        const cameraMessageEl = document.getElementById("camera-message");
 
         const logDebug = (msg) => {
           console.log("[DEBUG]", msg);
@@ -18,138 +294,108 @@
           }
         };
 
-        // Initial debug message
-        logDebug("DOM loaded. Waiting for Start AR…");
+        // Stato iniziale debug
+        logDebug("Waiting for Start AR…");
 
-        // Try to read current camera permission state (if supported)
+        // Prova a leggere lo stato attuale del permesso fotocamera (se supportato)
+        let cachedPermissionState = "unknown";
         if (navigator.permissions && navigator.permissions.query) {
           try {
             navigator.permissions
               .query({ name: "camera" })
               .then((result) => {
+                cachedPermissionState = result.state; // 'granted', 'denied', 'prompt'
                 logDebug(
-                  "DOM loaded. Camera permission state: " +
+                  "Camera permission state: " +
                     result.state +
                     ". Waiting for Start AR…"
                 );
               })
               .catch(() => {
-                // ignore errors, keep default debug text
+                // ignore
               });
           } catch (e) {
-            // ignore if Permissions API is not fully supported
+            // ignore
           }
         }
 
-        if (
-          startButton &&
-          introEl &&
-          sceneEl &&
-          cameraPermissionEl &&
-          camYesBtn &&
-          camNoBtn
-        ) {
-          // STEP 1: Click on Start AR -> show our camera permission screen
-          startButton.addEventListener("click", () => {
-            logDebug("Start AR clicked. Showing camera permission screen…");
-            introEl.style.display = "none";
+        const showPermissionHelp = () => {
+          if (permissionHelpEl) {
+            permissionHelpEl.style.display = "flex";
+          }
+          if (sceneEl) {
             sceneEl.style.display = "none";
-            cameraPermissionEl.style.display = "flex";
-            if (cameraMessageEl) {
-              cameraMessageEl.textContent = "";
-            }
+          }
+        };
+
+        const hidePermissionHelp = () => {
+          if (permissionHelpEl) {
+            permissionHelpEl.style.display = "none";
+          }
+        };
+
+        if (permBackBtn && introEl) {
+          permBackBtn.addEventListener("click", () => {
+            hidePermissionHelp();
+            introEl.style.display = "flex";
+            logDebug("Returned to start screen. Waiting for Start AR…");
           });
+        }
 
-          // Function that actually requests camera permission and starts AR
-          const requestCameraAndStart = async () => {
-            logDebug("Requesting camera permission…");
-            if (cameraMessageEl) {
-              cameraMessageEl.textContent = "Richiesta di accesso alla fotocamera…";
-            }
+        if (startButton && introEl && sceneEl) {
+          startButton.addEventListener("click", async () => {
+            introEl.style.display = "none";
+            logDebug("Start AR clicked. Checking camera permission…");
 
-            if (
-              !navigator.mediaDevices ||
-              !navigator.mediaDevices.getUserMedia
-            ) {
-              logDebug("ERROR: getUserMedia not supported on this device.");
-              if (cameraMessageEl) {
-                cameraMessageEl.textContent =
-                  "Questo dispositivo o browser non supporta l'accesso alla fotocamera.";
-              }
+            // Se sappiamo già che è 'denied', non ha senso avviare subito AR
+            if (cachedPermissionState === "denied") {
+              logDebug(
+                "Camera permission is DENIED. Showing help interface to re-abilitate camera."
+              );
+              showPermissionHelp();
               return;
             }
 
-            try {
-              // This will trigger the OFFICIAL browser prompt (if state is 'prompt')
-              const stream = await navigator.mediaDevices.getUserMedia({
-                video: true,
-              });
+            // Mostriamo la scena AR e lasciamo che MindAR gestisca la richiesta della camera
+            sceneEl.style.display = "block";
 
-              logDebug("Camera permission granted. Initializing AR…");
+            const arSystem = sceneEl.systems["mindar-image-system"];
+            if (arSystem && arSystem.start) {
+              try {
+                logDebug(
+                  "Starting AR. Il browser potrebbe mostrare la richiesta ufficiale di permesso camera."
+                );
+                await arSystem.start();
+                logDebug(
+                  "AR started. Point the camera at the target. (permission state may now be 'granted')"
+                );
 
-              // Stop the temporary stream; MindAR will open its own
-              stream.getTracks().forEach((t) => t.stop());
-
-              const arSystem = sceneEl.systems["mindar-image-system"];
-              if (arSystem && arSystem.start) {
-                cameraPermissionEl.style.display = "none";
-                sceneEl.style.display = "block";
-
-                try {
-                  await arSystem.start();
-                  logDebug("MindAR started. Point the camera at the target.");
-
-                  if (targetEntity) {
-                    targetEntity.addEventListener("targetFound", () => {
-                      logDebug("TARGET FOUND");
-                    });
-                    targetEntity.addEventListener("targetLost", () => {
-                      logDebug("Target lost…");
-                    });
-                  } else {
-                    logDebug(
-                      "WARNING: mindar-image-target entity not found in scene."
-                    );
-                  }
-                } catch (e) {
-                  console.error("Error starting MindAR:", e);
-                  logDebug("ERROR starting MindAR. See console.");
+                // Debug per il target
+                if (targetEntity) {
+                  targetEntity.addEventListener("targetFound", () => {
+                    logDebug("TARGET FOUND");
+                  });
+                  targetEntity.addEventListener("targetLost", () => {
+                    logDebug("Target lost…");
+                  });
                 }
-              } else {
-                logDebug("ERROR: mindar-image-system not found on scene.");
-                if (cameraMessageEl) {
-                  cameraMessageEl.textContent =
-                    "Errore interno: sistema AR non disponibile.";
-                }
+              } catch (e) {
+                console.error("Error starting MindAR:", e);
+                logDebug(
+                  "Error starting AR. Probabile permesso fotocamera negato o non disponibile."
+                );
+                showPermissionHelp();
               }
-            } catch (err) {
-              console.error("Camera permission denied or failed:", err);
-              logDebug("ERROR: Camera permission denied. AR cannot start.");
-              if (cameraMessageEl) {
-                cameraMessageEl.textContent =
-                  "Non è possibile proseguire senza l'utilizzo della camera.\n" +
-                  "Se hai bloccato la fotocamera per questo sito, vai nelle impostazioni del browser, abilita la fotocamera per 'github.io' e ricarica la pagina.";
-              }
-            }
-          };
-
-          // STEP 2: User clicks YES in our custom UI
-          camYesBtn.addEventListener("click", () => {
-            requestCameraAndStart();
-          });
-
-          // STEP 3: User clicks NO in our custom UI
-          camNoBtn.addEventListener("click", () => {
-            logDebug("User clicked NO on camera permission.");
-            if (cameraMessageEl) {
-              cameraMessageEl.textContent =
-                "Non è possibile proseguire senza l'utilizzo della camera.";
+            } else {
+              console.error("mindar-image-system not found on scene.");
+              logDebug("ERROR: mindar-image-system not found on scene.");
             }
           });
         } else {
-          logDebug(
-            "ERROR: Missing start button, intro, scene, or camera permission UI elements."
-          );
+          console.error("Missing start button, intro, or scene element.");
+          logDebug("ERROR: Missing start button, intro, or scene element.");
         }
       });
     </script>
+  </body>
+</html>
