@@ -152,6 +152,72 @@
         text-align: left;
         white-space: pre-line;
       }
+
+      #permission-help {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: #ffffff;
+        z-index: 11;
+        text-align: center;
+      }
+
+      .perm-box {
+        max-width: 520px;
+        padding: 28px 32px;
+        border-radius: 18px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.15);
+        background: #ffffff;
+        color: #000000;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .perm-box h2 {
+        margin: 0;
+        font-size: 1.4rem;
+      }
+
+      .perm-box p {
+        margin: 0;
+        line-height: 1.4;
+      }
+
+      .perm-box ul {
+        margin: 6px 0 0 18px;
+        padding: 0;
+        text-align: left;
+      }
+
+      .perm-box li {
+        margin-bottom: 4px;
+        font-size: 0.9rem;
+      }
+
+      #perm-back {
+        align-self: center;
+        margin-top: 8px;
+        padding: 10px 18px;
+        border-radius: 999px;
+        border: 2px solid #000;
+        background: #ffffff;
+        color: #000000;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease, transform 0.15s ease;
+      }
+
+      #perm-back:hover {
+        background: #e5e5e5;
+        transform: translateY(-1px);
+      }
     </style>
   </head>
 
@@ -171,6 +237,23 @@
         <p class="note">
           Tip: open this page on a smartphone or tablet and allow camera access.
         </p>
+      </div>
+    </div>
+
+    <div id="permission-help">
+      <div class="perm-box">
+        <h2>Permesso fotocamera necessario</h2>
+        <p>
+          Non è possibile proseguire senza l'utilizzo della fotocamera. Per
+          abilitare la camera per questo sito:
+        </p>
+        <ul>
+          <li>Apri le impostazioni del browser per questo sito (icona lucchetto o "aA").</li>
+          <li>Trova la voce <strong>Fotocamera / Camera</strong>.</li>
+          <li>Imposta su <strong>Consenti</strong> o <strong>Allow</strong>.</li>
+          <li>Ricarica la pagina e premi di nuovo <strong>Start AR</strong>.</li>
+        </ul>
+        <button id="perm-back">Torna alla schermata iniziale</button>
       </div>
     </div>
 
@@ -200,6 +283,8 @@
         const startButton = document.getElementById("start-ar");
         const sceneEl = document.querySelector("a-scene");
         const debugEl = document.getElementById("debug-panel");
+        const permissionHelpEl = document.getElementById("permission-help");
+        const permBackBtn = document.getElementById("perm-back");
         const targetEntity = document.querySelector("[mindar-image-target]");
 
         const logDebug = (msg) => {
@@ -209,22 +294,83 @@
           }
         };
 
-        logDebug("DOM loaded. Waiting for Start AR…");
+        // Stato iniziale debug
+        logDebug("Waiting for Start AR…");
+
+        // Prova a leggere lo stato attuale del permesso fotocamera (se supportato)
+        let cachedPermissionState = "unknown";
+        if (navigator.permissions && navigator.permissions.query) {
+          try {
+            navigator.permissions
+              .query({ name: "camera" })
+              .then((result) => {
+                cachedPermissionState = result.state; // 'granted', 'denied', 'prompt'
+                logDebug(
+                  "Camera permission state: " +
+                    result.state +
+                    ". Waiting for Start AR…"
+                );
+              })
+              .catch(() => {
+                // ignore
+              });
+          } catch (e) {
+            // ignore
+          }
+        }
+
+        const showPermissionHelp = () => {
+          if (permissionHelpEl) {
+            permissionHelpEl.style.display = "flex";
+          }
+          if (sceneEl) {
+            sceneEl.style.display = "none";
+          }
+        };
+
+        const hidePermissionHelp = () => {
+          if (permissionHelpEl) {
+            permissionHelpEl.style.display = "none";
+          }
+        };
+
+        if (permBackBtn && introEl) {
+          permBackBtn.addEventListener("click", () => {
+            hidePermissionHelp();
+            introEl.style.display = "flex";
+            logDebug("Returned to start screen. Waiting for Start AR…");
+          });
+        }
 
         if (startButton && introEl && sceneEl) {
           startButton.addEventListener("click", async () => {
-            logDebug("Start AR clicked. Hiding intro, showing scene…");
             introEl.style.display = "none";
+            logDebug("Start AR clicked. Checking camera permission…");
+
+            // Se sappiamo già che è 'denied', non ha senso avviare subito AR
+            if (cachedPermissionState === "denied") {
+              logDebug(
+                "Camera permission is DENIED. Showing help interface to re-abilitate camera."
+              );
+              showPermissionHelp();
+              return;
+            }
+
+            // Mostriamo la scena AR e lasciamo che MindAR gestisca la richiesta della camera
             sceneEl.style.display = "block";
 
             const arSystem = sceneEl.systems["mindar-image-system"];
-
             if (arSystem && arSystem.start) {
               try {
-                logDebug("MindAR system found. Starting AR (browser will now ask for camera permission)...");
+                logDebug(
+                  "Starting AR. Il browser potrebbe mostrare la richiesta ufficiale di permesso camera."
+                );
                 await arSystem.start();
-                logDebug("MindAR started. Point the camera at the target.");
+                logDebug(
+                  "AR started. Point the camera at the target. (permission state may now be 'granted')"
+                );
 
+                // Debug per il target
                 if (targetEntity) {
                   targetEntity.addEventListener("targetFound", () => {
                     logDebug("TARGET FOUND");
@@ -232,19 +378,21 @@
                   targetEntity.addEventListener("targetLost", () => {
                     logDebug("Target lost…");
                   });
-                } else {
-                  logDebug("WARNING: mindar-image-target entity not found in scene.");
                 }
               } catch (e) {
                 console.error("Error starting MindAR:", e);
-                logDebug("ERROR starting MindAR. See console.");
-                return;
+                logDebug(
+                  "Error starting AR. Probabile permesso fotocamera negato o non disponibile."
+                );
+                showPermissionHelp();
               }
             } else {
+              console.error("mindar-image-system not found on scene.");
               logDebug("ERROR: mindar-image-system not found on scene.");
             }
           });
         } else {
+          console.error("Missing start button, intro, or scene element.");
           logDebug("ERROR: Missing start button, intro, or scene element.");
         }
       });
