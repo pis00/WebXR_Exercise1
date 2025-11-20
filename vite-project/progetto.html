@@ -229,20 +229,21 @@
         z-index: 12;
       }
 
+      .target-guide-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+
       .target-frame {
         width: min(60vw, 260px);
         height: min(60vw, 260px);
-        border: 3px solid rgba(255, 255, 255, 0.9);
         border-radius: 12px;
-        box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.35);
-        background: rgba(0, 0, 0, 0.05);
-        display: flex;
-        align-items: flex-end;
-        justify-content: center;
+        background: rgba(0, 0, 0, 0.25);
       }
 
       .target-text {
-        margin-bottom: 10px;
         padding: 4px 10px;
         border-radius: 999px;
         background: rgba(0, 0, 0, 0.7);
@@ -290,7 +291,8 @@
     </div>
 
     <div id="target-guide">
-      <div class="target-frame">
+      <div class="target-guide-inner">
+        <div class="target-frame"></div>
         <div class="target-text">Center the postcard / QR inside this frame</div>
       </div>
     </div>
@@ -420,17 +422,17 @@
                 );
                 await arSystem.start();
                 logDebug(
-                  "AR started. Point your camera at the target (permission may now be 'granted')."
+                  "AR started. Searching for target… Point your camera at the postcard / QR."
                 );
 
                 // Debug per il target
                 if (targetEntity) {
                   targetEntity.addEventListener("targetFound", () => {
-                    logDebug("TARGET FOUND");
+                    logDebug("TARGET FOUND – tracking active.");
                     hideTargetGuide();
                   });
                   targetEntity.addEventListener("targetLost", () => {
-                    logDebug("Target lost…");
+                    logDebug("Target lost – searching again…");
                     showTargetGuide();
                   });
                 }
