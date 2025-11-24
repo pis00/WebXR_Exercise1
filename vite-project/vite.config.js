@@ -11,10 +11,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: "index.html",
-        scene1: "scene1.html",
-        scene2: "scene2.html",
-        progetto: "progetto.html",
+        main: "project.html",
       },
     },
   },
