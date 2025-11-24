@@ -210,6 +210,25 @@
         z-index: 12;
       }
 
+      #exit-btn {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: #ffffff;
+        color: #000000;
+        border: 2px solid #000000;
+        border-radius: 8px;
+        padding: 10px 16px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        z-index: 9999;
+      }
+
+      #exit-btn:hover {
+        background: #e5e5e5;
+      }
+
       .target-guide-inner {
         display: flex;
         flex-direction: column;
@@ -278,13 +297,15 @@
       </div>
     </div>
 
+    <button id="exit-btn" style="display:none;">Exit</button>
+
     <a-scene mindar-image="imageTargetSrc: ./target.mind; autoStart: false;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: true" embedded style="display: none;">
 
       <a-assets>
-        <a-asset-item id="roomModel" src="./models/art_room.glb"></a-asset-item>
-        <a-asset-item id="painting1Model" src="./models/painting1.glb"></a-asset-item>
-        <a-asset-item id="painting2Model" src="./models/painting2.glb"></a-asset-item>
-        <a-asset-item id="mainObjectModel" src="./models/Art_scene.glb"></a-asset-item>
+        <a-asset-item id="roomModel" src="./art_room.glb"></a-asset-item>
+        <a-asset-item id="painting1Model" src="./painting1.glb"></a-asset-item>
+        <a-asset-item id="painting2Model" src="./painting2.glb"></a-asset-item>
+        <a-asset-item id="mainObjectModel" src="./Art_scene.glb"></a-asset-item>
       </a-assets>
 
       <a-entity light="type: ambient; intensity: 0.6"></a-entity>
@@ -308,6 +329,7 @@
         const permBackBtn = document.getElementById("perm-back");
         const targetGuideEl = document.getElementById("target-guide");
         const targetEntity = document.querySelector("[mindar-image-target]");
+        const exitBtn = document.getElementById("exit-btn");
 
         const logDebug = (msg) => {
           console.log("[DEBUG]", msg);
@@ -377,6 +399,12 @@
           });
         }
 
+        if (exitBtn) {
+          exitBtn.addEventListener("click", () => {
+            location.reload();
+          });
+        }
+
         if (startButton && introEl && sceneEl) {
           startButton.addEventListener("click", async () => {
             introEl.style.display = "none";
@@ -394,6 +422,7 @@
             // Show AR scene and let MindAR request camera
             showTargetGuide();
             sceneEl.style.display = "block";
+            if (exitBtn) exitBtn.style.display = "block";
 
             const arSystem = sceneEl.systems["mindar-image-system"];
             if (arSystem && arSystem.start) {
