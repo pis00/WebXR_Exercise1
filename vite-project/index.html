@@ -6,16 +6,20 @@
     <title>AR Art Room</title>
     <link rel="icon" type="image/svg+xml" href="./vite.svg" />
 
+    <!-- A-Frame and MindAR -->
     <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.6.0/dist/aframe-extras.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
+    <!-- CSS -->
     <link rel="stylesheet" href="./style.css" />
   </head>
 
   <body>
+    <!-- Debug info -->
     <div id="debug-panel">[DEBUG] Waiting for Start AR…</div>
 
+    <!-- Intro screen -->
     <div id="intro">
       <div class="intro-box">
         <h1>AR Art Room</h1>
@@ -31,6 +35,7 @@
       </div>
     </div>
 
+    <!-- Camera permission help -->
     <div id="permission-help">
       <div class="perm-box">
         <h2>Camera Access Required</h2>
@@ -47,6 +52,7 @@
       </div>
     </div>
 
+    <!-- Target guide overlay -->
     <div id="target-guide">
       <div class="target-guide-inner">
         <div class="target-frame"></div>
@@ -54,10 +60,17 @@
       </div>
     </div>
 
+    <!-- Exit button (visible only in AR mode) -->
     <button id="exit-btn" style="display:none;">Exit</button>
 
-    <a-scene mindar-image="imageTargetSrc: ./target.mind; autoStart: false;" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: true" embedded style="display: none;">
-
+    <!-- AR scene -->
+    <a-scene
+      mindar-image="imageTargetSrc: ./target.mind; autoStart: false;"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: true"
+      embedded
+      style="display: none;"
+    >
       <a-assets>
         <a-asset-item id="roomModel" src="./art_room.glb"></a-asset-item>
         <a-asset-item id="painting1Model" src="./painting1.glb"></a-asset-item>
@@ -69,13 +82,30 @@
       <a-entity light="type: directional; intensity: 0.8" position="0 1 1"></a-entity>
 
       <a-entity mindar-image-target="targetIndex: 0">
-        <a-gltf-model src="#roomModel" position="0 0 0" rotation="0 0 0" scale="0.4 0.4 0.4"></a-gltf-model>
-        <a-gltf-model src="#painting1Model" position="0 1 0.5" rotation="0 180 0" scale="0.2 0.2 0.2"></a-gltf-model>
-        <a-gltf-model src="#painting2Model" position="-0.8 1 0.5" rotation="0 180 0" scale="0.2 0.2 0.2"></a-gltf-model>
-      </a-entity>
+        <a-gltf-model
+          src="#roomModel"
+          position="0 0 0"
+          rotation="0 0 0"
+          scale="0.4 0.4 0.4"
+        ></a-gltf-model>
 
+        <a-gltf-model
+          src="#painting1Model"
+          position="0 1 0.5"
+          rotation="0 180 0"
+          scale="0.2 0.2 0.2"
+        ></a-gltf-model>
+
+        <a-gltf-model
+          src="#painting2Model"
+          position="-0.8 1 0.5"
+          rotation="0 180 0"
+          scale="0.2 0.2 0.2"
+        ></a-gltf-model>
+      </a-entity>
     </a-scene>
 
+    <!-- TS entrypoint (Vite) -->
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
