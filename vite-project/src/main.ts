@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const permBackBtn = document.getElementById("perm-back") as HTMLButtonElement | null;
   const targetGuideEl = document.getElementById("target-guide") as HTMLElement | null;
   const targetEntity = document.querySelector("[mindar-image-target]") as HTMLElement | null;
-  const artSceneObject = document.getElementById("artSceneObject") as HTMLElement | null;
   const debugCube = document.getElementById("debugCube") as HTMLElement | null;
   const exitBtn = document.getElementById("exit-btn") as HTMLButtonElement | null;
 
@@ -17,7 +16,6 @@ document.addEventListener("DOMContentLoaded", () => {
       debugEl.textContent = "[DEBUG] " + msg;
     }
   };
-
 
   const hidePermissionHelp = (): void => {
     if (permissionHelpEl) {
@@ -40,14 +38,21 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initial debug state
   logDebug("Waiting for Start AR…");
 
+  // Delay hiding when tracking is briefly lost
+  let hideTimeout: number | null = null;
+
   // Target events: show/hide model and debug cube
   if (targetEntity) {
     targetEntity.addEventListener("targetFound", () => {
       logDebug("TARGET FOUND – tracking active.");
       hideTargetGuide();
-      if (artSceneObject) {
-        artSceneObject.setAttribute("visible", "true");
+
+      // Cancel any pending hide timeout
+      if (hideTimeout !== null) {
+        clearTimeout(hideTimeout);
+        hideTimeout = null;
       }
+
       if (debugCube) {
         debugCube.setAttribute("visible", "true");
       }
@@ -56,13 +61,16 @@ document.addEventListener("DOMContentLoaded", () => {
     targetEntity.addEventListener("targetLost", () => {
       logDebug("Target lost – searching again…");
       showTargetGuide();
-      if (artSceneObject) {
-        artSceneObject.setAttribute("visible", "false");
-      }
-      if (debugCube) {
-        debugCube.setAttribute("visible", "false");
-      }
+
+      // Delay hiding to avoid flicker on brief tracking loss
+      hideTimeout = window.setTimeout(() => {
+        if (debugCube) {
+          debugCube.setAttribute("visible", "false");
+        }
+      }, 800); // 0.8s di tolleranza
     });
+  } else {
+    logDebug("WARNING: mindar-image-target entity not found in the scene.");
   }
 
   // Back from permission help
