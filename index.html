@@ -66,7 +66,7 @@
 
     <!-- AR scene -->
     <a-scene
-      mindar-image="imageTargetSrc: ./target.mind; autoStart: false;"
+      mindar-image="imageTargetSrc: ./target.mind; autoStart: false; ui: false;"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: true"
       embedded
@@ -79,7 +79,7 @@
       <a-entity light="type: ambient; intensity: 0.6"></a-entity>
       <a-entity light="type: directional; intensity: 0.8" position="0 1 1"></a-entity>
 
-      <a-entity camera position="0 0 0" look-controls="enabled: false"></a-entity>
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
         <a-gltf-model
