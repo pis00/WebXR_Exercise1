@@ -18,37 +18,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // Initial debug state
-  logDebug("Waiting for Start AR…");
-
-  // Check camera permission status
-  let cachedPermissionState: "granted" | "denied" | "prompt" | "unknown" = "unknown";
-  if ((navigator as any).permissions && (navigator as any).permissions.query) {
-    try {
-      (navigator as any).permissions
-        .query({ name: "camera" as any })
-        .then((result: any) => {
-          cachedPermissionState = result.state as "granted" | "denied" | "prompt";
-          logDebug(
-            "Camera permission state: " +
-              result.state +
-              ". Waiting for Start AR…"
-          );
-        })
-        .catch(() => {
-          // ignore
-        });
-    } catch (e) {
-      // ignore
-    }
-  }
-
   const showPermissionHelp = (): void => {
     if (permissionHelpEl) {
       permissionHelpEl.style.display = "flex";
     }
     if (sceneEl) {
       sceneEl.style.display = "none";
+    }
+    if (exitBtn) {
+      exitBtn.style.display = "none";
     }
   };
 
@@ -70,86 +48,69 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  // Initial debug state
+  logDebug("Waiting for Start AR…");
+
+  // Target events: show/hide model and debug cube
+  if (targetEntity) {
+    targetEntity.addEventListener("targetFound", () => {
+      logDebug("TARGET FOUND – tracking active.");
+      hideTargetGuide();
+      if (artSceneObject) {
+        artSceneObject.setAttribute("visible", "true");
+      }
+      if (debugCube) {
+        debugCube.setAttribute("visible", "true");
+      }
+    });
+
+    targetEntity.addEventListener("targetLost", () => {
+      logDebug("Target lost – searching again…");
+      showTargetGuide();
+      if (artSceneObject) {
+        artSceneObject.setAttribute("visible", "false");
+      }
+      if (debugCube) {
+        debugCube.setAttribute("visible", "false");
+      }
+    });
+  }
+
+  // Back from permission help
   if (permBackBtn && introEl) {
     permBackBtn.addEventListener("click", () => {
       hidePermissionHelp();
       hideTargetGuide();
       introEl.style.display = "flex";
+      if (sceneEl) {
+        sceneEl.style.display = "none";
+      }
+      if (exitBtn) {
+        exitBtn.style.display = "none";
+      }
       logDebug("Returned to start screen. Waiting for Start AR…");
     });
   }
 
+  // Exit button
   if (exitBtn) {
     exitBtn.addEventListener("click", () => {
       location.reload();
     });
   }
 
+  // Start AR: show scene, let MindAR auto-start
   if (startButton && introEl && sceneEl) {
-    startButton.addEventListener("click", async () => {
+    startButton.addEventListener("click", () => {
       introEl.style.display = "none";
-      logDebug("Start AR clicked. Checking camera permission…");
-
-      // If permission denied, show help
-      if (cachedPermissionState === "denied") {
-        logDebug("Camera permission is DENIED. Showing help interface.");
-        showPermissionHelp();
-        return;
-      }
-
-      // Show AR scene and let MindAR request camera
-      showTargetGuide();
       sceneEl.style.display = "block";
       if (exitBtn) {
         exitBtn.style.display = "block";
       }
-
-      const arSystem = (sceneEl as any)?.systems?.["mindar-image-system"];
-      if (arSystem && typeof arSystem.start === "function") {
-        try {
-          logDebug(
-            "Starting AR. The browser may now show the official camera permission prompt."
-          );
-          await arSystem.start();
-          logDebug(
-            "AR started. Searching for target… Point your camera at the postcard / QR."
-          );
-
-          // Target debug and show/hide model
-          if (targetEntity) {
-            targetEntity.addEventListener("targetFound", () => {
-              logDebug("TARGET FOUND – tracking active.");
-              hideTargetGuide();
-              if (artSceneObject) {
-                artSceneObject.setAttribute("visible", "true");
-              }
-              if (debugCube) {
-                debugCube.setAttribute("visible", "true");
-              }
-            });
-            targetEntity.addEventListener("targetLost", () => {
-              logDebug("Target lost – searching again…");
-              showTargetGuide();
-              if (artSceneObject) {
-                artSceneObject.setAttribute("visible", "false");
-              }
-              if (debugCube) {
-                debugCube.setAttribute("visible", "false");
-              }
-            });
-          }
-        } catch (e) {
-          console.error("Error starting MindAR:", e);
-          logDebug(
-            "Error starting AR. Camera permission likely denied or unavailable."
-          );
-          showPermissionHelp();
-          hideTargetGuide();
-        }
-      } else {
-        console.error("mindar-image-system not found on scene.");
-        logDebug("ERROR: mindar-image-system not found on scene.");
-      }
+      showTargetGuide();
+      logDebug(
+        "AR scene shown. MindAR will auto-start. Point your camera at the postcard / QR."
+      );
     });
   } else {
     console.error("Missing start button, intro, or scene element.");
