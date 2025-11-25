@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const permBackBtn = document.getElementById("perm-back") as HTMLButtonElement | null;
   const targetGuideEl = document.getElementById("target-guide") as HTMLElement | null;
   const targetEntity = document.querySelector("[mindar-image-target]") as HTMLElement | null;
+  const artSceneObject = document.getElementById("artSceneObject") as HTMLElement | null;
+  const debugCube = document.getElementById("debugCube") as HTMLElement | null;
   const exitBtn = document.getElementById("exit-btn") as HTMLButtonElement | null;
 
   const logDebug = (msg: string): void => {
@@ -113,15 +115,27 @@ document.addEventListener("DOMContentLoaded", () => {
             "AR started. Searching for target… Point your camera at the postcard / QR."
           );
 
-          // Target debug
+          // Target debug and show/hide model
           if (targetEntity) {
             targetEntity.addEventListener("targetFound", () => {
               logDebug("TARGET FOUND – tracking active.");
               hideTargetGuide();
+              if (artSceneObject) {
+                artSceneObject.setAttribute("visible", "true");
+              }
+              if (debugCube) {
+                debugCube.setAttribute("visible", "true");
+              }
             });
             targetEntity.addEventListener("targetLost", () => {
               logDebug("Target lost – searching again…");
               showTargetGuide();
+              if (artSceneObject) {
+                artSceneObject.setAttribute("visible", "false");
+              }
+              if (debugCube) {
+                debugCube.setAttribute("visible", "false");
+              }
             });
           }
         } catch (e) {
