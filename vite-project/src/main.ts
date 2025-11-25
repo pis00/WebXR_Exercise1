@@ -18,17 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  const showPermissionHelp = (): void => {
-    if (permissionHelpEl) {
-      permissionHelpEl.style.display = "flex";
-    }
-    if (sceneEl) {
-      sceneEl.style.display = "none";
-    }
-    if (exitBtn) {
-      exitBtn.style.display = "none";
-    }
-  };
 
   const hidePermissionHelp = (): void => {
     if (permissionHelpEl) {
