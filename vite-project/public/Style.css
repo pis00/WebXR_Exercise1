@@ -246,3 +246,36 @@ canvas.a-canvas {
   font-weight: 500;
   text-align: center;
 }
+
+/* Model navigation arrows */
+#model-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 18px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+#model-nav button {
+  pointer-events: auto;
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  border: 2px solid #000;
+  background: rgba(255, 255, 255, 0.9);
+  color: #000;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#model-nav button:active {
+  transform: scale(0.98);
+}

@@ -7,7 +7,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const permBackBtn = document.getElementById("perm-back") as HTMLButtonElement | null;
   const targetGuideEl = document.getElementById("target-guide") as HTMLElement | null;
   const targetEntity = document.querySelector("[mindar-image-target]") as HTMLElement | null;
-  const debugCube = document.getElementById("debugCube") as HTMLElement | null;
+
+  const model1 = document.getElementById("paintModelEntity1") as HTMLElement | null;
+  const model2 = document.getElementById("paintModelEntity2") as HTMLElement | null;
+  const model3 = document.getElementById("paintModelEntity3") as HTMLElement | null;
+
+  const modelNav = document.getElementById("model-nav") as HTMLElement | null;
+  const prevModelBtn = document.getElementById("prev-model") as HTMLButtonElement | null;
+  const nextModelBtn = document.getElementById("next-model") as HTMLButtonElement | null;
+
   const exitBtn = document.getElementById("exit-btn") as HTMLButtonElement | null;
 
   const logDebug = (msg: string): void => {
@@ -41,6 +49,36 @@ document.addEventListener("DOMContentLoaded", () => {
   // Delay hiding when tracking is briefly lost
   let hideTimeout: number | null = null;
 
+  // --- Model switching ---
+  const models: (HTMLElement | null)[] = [model1, model2, model3];
+  let currentModelIndex = 0;
+
+  const setModelVisible = (index: number): void => {
+    currentModelIndex = (index + models.length) % models.length;
+    models.forEach((m, i) => {
+      if (m) m.setAttribute("visible", i === currentModelIndex ? "true" : "false");
+    });
+    logDebug(`Model changed to ${currentModelIndex + 1} / ${models.length}`);
+  };
+
+  const showAllModels = (): void => {
+    // Ensure exactly the selected model is visible
+    setModelVisible(currentModelIndex);
+  };
+
+  const hideAllModels = (): void => {
+    models.forEach((m) => {
+      if (m) m.setAttribute("visible", "false");
+    });
+  };
+
+  // Button handlers
+  const goPrevModel = (): void => setModelVisible(currentModelIndex - 1);
+  const goNextModel = (): void => setModelVisible(currentModelIndex + 1);
+
+  if (prevModelBtn) prevModelBtn.addEventListener("click", goPrevModel);
+  if (nextModelBtn) nextModelBtn.addEventListener("click", goNextModel);
+
   // Target events: show/hide model and debug cube
   if (targetEntity) {
     targetEntity.addEventListener("targetFound", () => {
@@ -53,9 +91,10 @@ document.addEventListener("DOMContentLoaded", () => {
         hideTimeout = null;
       }
 
-      if (debugCube) {
-        debugCube.setAttribute("visible", "true");
+      if (modelNav) {
+        modelNav.style.display = "flex";
       }
+      showAllModels();
     });
 
     targetEntity.addEventListener("targetLost", () => {
@@ -64,8 +103,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Delay hiding to avoid flicker on brief tracking loss
       hideTimeout = window.setTimeout(() => {
-        if (debugCube) {
-          debugCube.setAttribute("visible", "false");
+        hideAllModels();
+        if (modelNav) {
+          modelNav.style.display = "none";
         }
       }, 800); // 0.8s di tolleranza
     });
@@ -84,6 +124,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (exitBtn) {
         exitBtn.style.display = "none";
+      }
+      if (modelNav) {
+        modelNav.style.display = "none";
       }
       logDebug("Returned to start screen. Waiting for Start AR…");
     });
@@ -104,7 +147,12 @@ document.addEventListener("DOMContentLoaded", () => {
       if (exitBtn) {
         exitBtn.style.display = "block";
       }
+      if (modelNav) {
+        modelNav.style.display = "flex";
+      }
+      setModelVisible(0);
       showTargetGuide();
+      hideAllModels();
       logDebug(
         "AR scene shown. MindAR will auto-start. Point your camera at the postcard / QR."
       );
