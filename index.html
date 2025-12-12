@@ -14,7 +14,7 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="./Style.css" />
-    <script type="module" crossorigin src="/WebXR_Exercise1/assets/main-azCQLsNV.js"></script>
+    <script type="module" crossorigin src="/WebXR_Exercise1/assets/main-sznXkIEJ.js"></script>
   </head>
 
   <body>
@@ -65,6 +65,12 @@
     <!-- Exit button (visible only in AR mode) -->
     <button id="exit-btn" style="display:none;">Exit</button>
 
+    <!-- Model navigation (visible only in AR mode) -->
+    <div id="model-nav" style="display:none;">
+      <button id="prev-model" aria-label="Previous model">◀</button>
+      <button id="next-model" aria-label="Next model">▶</button>
+    </div>
+
     <!-- AR scene -->
     <a-scene
       mindar-image="imageTargetSrc: ./target.mind;"
@@ -74,7 +80,9 @@
       style="display: none;"
     >
       <a-assets>
-        <a-asset-item id="homeModel" src="./Home.glb"></a-asset-item>
+        <a-asset-item id="paintModel1" src="./paint_1.glb"></a-asset-item>
+        <a-asset-item id="paintModel2" src="./paint_2.glb"></a-asset-item>
+        <a-asset-item id="paintModel3" src="./paint_3.glb"></a-asset-item>
       </a-assets>
 
       <a-entity light="type: ambient; intensity: 0.6"></a-entity>
@@ -84,12 +92,30 @@
 
       <a-entity mindar-image-target="targetIndex: 0">
         <a-gltf-model
-          id="debugCube"
-          src="#homeModel"
-          position="0 0 -0.5"
-          rotation="0 0 0"
-          scale="0.4 0.4 0.4"
+          id="paintModelEntity1"
+          src="#paintModel1"
+          position="0 0 0"
+          rotation="90 90 90"
+          scale="0.08 0.08 0.08"
           visible="true">
+        </a-gltf-model>
+
+        <a-gltf-model
+          id="paintModelEntity2"
+          src="#paintModel2"
+          position="0 0 0"
+          rotation="90 90 90"
+          scale="0.08 0.08 0.08"
+          visible="false">
+        </a-gltf-model>
+
+        <a-gltf-model
+          id="paintModelEntity3"
+          src="#paintModel3"
+          position="0 0 0"
+          rotation="90 90 90"
+          scale="0.08 0.08 0.08"
+          visible="false">
         </a-gltf-model>
       </a-entity>
     </a-scene>
