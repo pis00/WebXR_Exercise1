@@ -108,6 +108,12 @@ document.addEventListener("DOMContentLoaded", () => {
       logDebug(
         "AR scene shown. MindAR will auto-start. Point your camera at the postcard / QR."
       );
+
+      // Force a window resize so A-Frame / MindAR recalculate the canvas
+      setTimeout(() => {
+        window.dispatchEvent(new Event("resize"));
+        logDebug("Forced window resize after showing AR scene.");
+      }, 100);
     });
   } else {
     console.error("Missing start button, intro, or scene element.");
