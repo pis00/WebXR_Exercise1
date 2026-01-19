@@ -1,3 +1,66 @@
+// A-Frame is loaded globally via script tag in index.html
+declare const AFRAME: any;
+
+// Optional: keep the model's apparent (on-screen) size roughly constant by scaling with camera distance.
+// Note: this breaks real-world scale (it is NOT physically correct AR), but it matches the requested behavior.
+if (typeof AFRAME !== "undefined" && AFRAME.registerComponent) {
+  AFRAME.registerComponent("scale-with-distance", {
+    schema: {
+      base: { type: "number", default: 1 }, // base uniform scale at referenceDistance
+      referenceDistance: { type: "number", default: 0.35 }, // distance where base scale applies
+      min: { type: "number", default: 0.1 },
+      max: { type: "number", default: 50 },
+
+      // Tuning helpers
+      damp: { type: "number", default: 0.25 }, // 0 = no smoothing, 0.25 = smooth
+      debug: { type: "boolean", default: false },
+      logEveryMs: { type: "number", default: 500 }
+    },
+
+    init: function () {
+      // Prefer the active camera from the scene; fallback to a [camera] entity.
+      this.cameraEl = (this.el.sceneEl && this.el.sceneEl.camera && this.el.sceneEl.camera.el)
+        ? this.el.sceneEl.camera.el
+        : document.querySelector("[camera]");
+
+      this._tmpA = new AFRAME.THREE.Vector3();
+      this._tmpB = new AFRAME.THREE.Vector3();
+      this._lastLog = 0;
+    },
+
+    tick: function () {
+      if (!this.cameraEl) return;
+
+      // World positions
+      this.el.object3D.getWorldPosition(this._tmpA);
+      this.cameraEl.object3D.getWorldPosition(this._tmpB);
+
+      const d = this._tmpA.distanceTo(this._tmpB);
+      if (!isFinite(d) || d <= 0) return;
+
+      // Scale proportionally with distance to keep approximate on-screen size constant.
+      let s = this.data.base * (d / this.data.referenceDistance);
+      s = Math.max(this.data.min, Math.min(this.data.max, s));
+
+      // Optional smoothing to avoid "pumping" while tracking jitters.
+      const current = this.el.object3D.scale.x || 0;
+      const alpha = Math.max(0, Math.min(1, this.data.damp));
+      const smoothed = alpha <= 0 ? s : (current + (s - current) * alpha);
+
+      this.el.object3D.scale.set(smoothed, smoothed, smoothed);
+
+      // Optional debug logging
+      if (this.data.debug) {
+        const now = Date.now();
+        if (now - this._lastLog >= this.data.logEveryMs) {
+          this._lastLog = now;
+          console.log(`[scale-with-distance] d=${d.toFixed(3)} targetS=${s.toFixed(3)} appliedS=${smoothed.toFixed(3)}`);
+        }
+      }
+    }
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const introEl = document.getElementById("intro") as HTMLElement | null;
   const startButton = document.getElementById("start-ar") as HTMLButtonElement | null;
